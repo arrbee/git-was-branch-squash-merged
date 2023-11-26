@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+#
+# git-was-branch-squash-merged BRANCH-NAME
+#
+# Copyright 2023 Russell Belfer
+# MIT License
 
 repo_root=`git rev-parse --show-toplevel`
 branch_current=`git branch --show-current`

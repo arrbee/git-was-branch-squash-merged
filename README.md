@@ -11,7 +11,7 @@ This Bash script solves my need and checks if a given branch has been
 squash-merged into the main branch of the repository.  Run it like so:
 
 ```sh
-git-was-branch-squash-merged <branch_name>
+git-was-branch-squash-merged BRANCH-NAME
 ```
 
 To determine if the branch was squash-merged, this checks out the branch
@@ -25,3 +25,5 @@ if there are any uncommitted local changes or if it can't figure out
 anything about the current Git repo, but I can't promise that it's perfect
 in that regard.  It also has a bit of a hacky check for what the name of
 the actual main branch is, but it meets my needs.
+
+This script is licensed under the MIT License.
