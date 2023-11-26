@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+
+repo_root=`git rev-parse --show-toplevel`
+branch_current=`git branch --show-current`
+branch_merged=$1
+
+for b in main dev master; do
+    if [ -f "$repo_root/.git/refs/heads/$b" ]; then
+        branch_main=$b
+        break
+    fi
+done
+if [ -z ${branch_main+x} ]; then
+    echo "Must be run within a Git repository"
+    exit 1;
+fi
+
+if [ ! -f "$repo_root/.git/refs/heads/$branch_merged" ]; then
+    echo "Must specify valid branch name to test for merge"
+    exit 1
+fi
+
+wd_clean=`git status --untracked-files=no --porcelain`
+if [ "$wd_clean" != "" ]; then
+    echo "Cannot run when local modifications exist"
+    exit 1
+fi
+
+missing_commits=`git cherry $branch_main $branch_merged`
+if [ -z ${missing_commits+x} ]; then
+    echo "$branch_merged has no commits not in $branch_main"
+    exit 0
+fi
+
+merge_base=`git merge-base $branch_main $branch_merged`
+if [ -z ${merge_base+x} ]; then
+    echo "Could not find merge base for $branch_merged"
+    exit 1
+fi
+
+git checkout --detach $branch_merged
+git reset --soft $merge_base && 2>/dev/null 1>/dev/null git commit -m 'squash'
+temp_head="squash.$RANDOM"
+2>/dev/null 1>/dev/null git tag $temp_head
+
+found_squashed_commits=`git cherry -v $branch_main @`
+echo "***"
+if [[ "$found_squashed_commits" =~ ^-[[:space:]][0-9a-z]+ ]]; then
+    echo "*** Squashed commit WAS found in $branch_main"
+    echo "*** Run: git branch -D $branch_merged"
+else
+    echo "*** Sqaushed commit WAS NOT found in $branch_main"
+fi
+echo "***"
+
+git checkout $branch_current
+2>/dev/null 1>/dev/null git tag -d $temp_head
